@@ -1,3 +1,4 @@
+from copy import copy
 from dataclasses import dataclass
 from typing import List, Any
 from os import path
@@ -21,9 +22,7 @@ class Account:
 
     def __init__(self, balance=0.0, acc_no=None, acc_type=DEFAULT_ACC_TYPE):
         self.balance: float = balance
-
         self.account_number: int = acc_no
-
         self.account_type: str = acc_type
         self.transactions: List[Transaction] = []
 
@@ -55,17 +54,17 @@ class Customer:
         self.check_accounts()
 
     def get_accounts(self):
-        with open(ACCOUNT_PATH + str(self.customer_id) + ".txt", 'r') as file:
-            lines = file.readlines()
+        if path.isfile(ACCOUNT_PATH + str(self.customer_id) + ".txt"):
+            with open(ACCOUNT_PATH + str(self.customer_id) + ".txt", 'r') as file:
+                lines = file.readlines()
 
-            # Create account objects of the data that exists
-        for line in lines:
-
-            acc = line.strip().split(':')
-            # print(acc[0], acc[1], acc[2], "HELLO") # DEBUG
-            account = Account(balance=float(acc[0]), acc_no=int(acc[2]), acc_type=DEFAULT_ACC_TYPE) #FUSK
-            self.accounts.append(account)
-        # print(self.accounts) # DEBUG
+                # Create account objects of the data that exist
+            for line in lines:
+                acc = line.strip().split(':')
+                # print(acc[0], acc[1], acc[2], "HELLO") # DEBUG
+                account = Account(balance=float(acc[0]), acc_no=int(acc[2]), acc_type=DEFAULT_ACC_TYPE)  # FUSK
+                self.accounts.append(account)
+            # print(self.accounts) # DEBUG
 
     def check_accounts(self):
         if path.isfile(ACCOUNT_PATH + str(self.customer_id) + ".txt"):
@@ -82,10 +81,8 @@ class Customer:
 
         # Select file mode
         if not path.isfile(ACCOUNT_PATH + str(customer.customer_id) + ".txt"):
-            print("There was no file")
             mode = 'wt'
         else:
-            print("File already exists")
             mode = 'at'
 
         with open(ACCOUNT_PATH + str(customer.customer_id) + ".txt", mode) as file:
@@ -93,22 +90,49 @@ class Customer:
                             str(new_account.account_number) + "\n")
 
         customer.accounts.append(new_account)
-        print(customer.accounts)
 
         return new_account.account_number
 
-    def end_account(self, acc_no: int) -> float:
-        # print("Customer.end_account", acc_no)  # DEBUG
-        balance = 0.0
-        for obj in self.accounts:
+    def get_account(self, acc_no: int) -> Account:
+        for account in self.accounts:
             # print(obj.account_number, "NEW")  # DEBUG
-            if obj.account_number == acc_no:
-                balance = obj.balance
+            if account.account_number == acc_no:
+                return account
+            else:
+                return None
 
-        # END THE ACCOUNT HERE!!!
-        return balance
+    def end_account(self, acc_no: int) -> float:
+        with open(ACCOUNT_PATH + str(self.customer_id) + ".txt", 'r') as r_file:
+            lines = r_file.readlines()
 
+            for line in lines:
+                list_line = line.strip().split(':')
+                str_line = line.strip()
 
+                tmp_acc = int(list_line[2])
+                ret_balance = float(list_line[0])
+
+                if tmp_acc == acc_no:
+                    with open(ACCOUNT_PATH + str(self.customer_id) + ".txt", 'w') as w_file:
+                        for lin in lines:
+                            if lin.strip() != str_line:
+                                w_file.write(lin)
+
+                    return ret_balance
+
+    def withdraw_account(self, acc_no: int, amount: float) -> float:
+        print("Customer_withdraw_account", acc_no)  # DEBUG
+        account = self.get_account(acc_no)
+        new_balance = account.withdraw(amount)
+        account.balance = new_balance
+        return new_balance
+
+    def deposit_account(self, acc_no: int, amount: float) -> float:
+        print("Customer_deposit_account", acc_no)  # DEBUG
+        account = self.get_account(acc_no)
+        new_balance = account.deposit(amount)
+        account.balance = new_balance
+        return new_balance
 
     def __repr__(self):
         return f'("{self.customer_id}","{self.name}",{self.pnr}")'
@@ -275,7 +299,7 @@ class Bank:
         # Load accounts
         account_file = ACCOUNT_PATH + str(customer.customer_id) + ".txt"
         if path.isfile(account_file):
-            # print("THERE WAS AN ACCOUNT FILE", account_file)
+            # print("THERE WAS AN ACCOUNT FILE", account_file)  # DEBUG
             for i, line in enumerate(open(account_file).readlines()):
                 acc = line.strip().split(':')
                 print(str(i+1) + ". Account number:", str(acc[2]) + "\t\t" + "Balance:", str(acc[0]) + "\t" + "Type:" +
@@ -317,19 +341,15 @@ class Bank:
         print("Select one of the following options to enter our service:")
         print()
         print("Main menu:")
-        print("1. Add a new customer\t\t 2. View all customers")
-        print("3. View a customer(pnr)\t\t 9. Quit NBI Bank app!")
+        print("1. View all customers\t\t 2. Add a new customer")
+        print("9. Quit NBI Bank app!")
 
         menu_val = int(input("Enter (1-4): "))
 
-        if menu_val == 1:
+        if menu_val == 2:
             self.new_customer_menu()
-        elif menu_val == 2:
+        elif menu_val == 1:
             self.get_customers()
-        elif menu_val == 3:
-            print(menu_val)
-        elif menu_val == 4:
-            print(menu_val)
         elif menu_val == 9:
             print("God bye :)")
             sys.exit(0)
@@ -366,7 +386,7 @@ class Bank:
         elif menu_val == 2:
             self.remove_customer(row=int(input("Enter row number: ")) - 1)
         elif menu_val == 3:
-            pass
+            self.show_main_menu()
         else:
             print("Wrong input")
             self.customers_menu()
@@ -376,10 +396,10 @@ class Bank:
         print()
         print("1. Change customer name \t\t\t 2. Create an account")
         print("3. Delete an account \t\t\t\t 4. Make a withdraw")
-        print("5. Make a deposit \t\t\t\t\t9. Back to main menu")
+        print("5. Make a deposit \t\t\t\t\t 9. Back to main menu")
         menu_val = int(input("Enter (1-9): "))
 
-        if menu_val == 1:
+        if menu_val == 1:  # Change customer name
             new_name = input("Please enter a new name: ")
             ret = self.change_customer_name(new_name, customer)
 
@@ -389,21 +409,27 @@ class Bank:
                 print("Something went wrong!", customer.pnr, new_name)
 
         elif menu_val == 2:  # Create account
-            self.add_account(customer.pnr)
+            ret = self.add_account(customer.pnr)
+            print("Account {} created".format(ret))
+            self.customer_menu(customer)
 
         elif menu_val == 3:  # Delete account
             print(customer.accounts)
             acc_no = int(input("Enter account number: "))
             balance = customer.end_account(acc_no)
-            print("Total out: " + str(balance))
+            print("Account closed, total out: " + str(balance))
 
         elif menu_val == 4:  # Withdraw
             acc_no = int(input("Enter account number: "))
-            amount = int(input("Enter amount: "))
+            amount = float(input("Enter amount: "))
+            new_balance = customer.withdraw_account(acc_no, amount)
+
+            print(new_balance)
 
         elif menu_val == 5:  # Deposit
-            pass
-
+            acc_no = int(input("Enter account number: "))
+            amount = float(input("Enter amount: "))
+            
         elif menu_val == 9:
             self.show_main_menu()
 
