@@ -188,7 +188,7 @@ class Bank:
             # print("\nThe bank has {} customers.\n".format(line_count))
             self.show_main_menu()
 
-    def get_customers(self):
+    def get_customers(self) -> List[Customer]:
         """
         Get all customers that are loaded from  file
         :return: Customers
@@ -245,7 +245,7 @@ class Bank:
             self.update_data_source()
             return True
 
-    def get_customer(self, pnr):
+    def get_customer(self, pnr: str):
         """
         Returns information about a specific customer
         :param pnr: <string>
@@ -290,11 +290,10 @@ class Bank:
 
                     return ret_name
 
-    def manage_customer(self, pos):
+    def manage_customer(self, pos: int):
         """
         Gets the specific customer by row number
         :param pos: <int> The row number of the customer
-        :return: <Customer>
         """
 
         customer = self.customers[pos]
@@ -448,3 +447,6 @@ class Bank:
             print("Wrong input")
             self.customer_menu(customer)
 
+
+if __name__ == '__main__':
+    print("Usage: bank = nbi.Bank() or use classes as needed")
