@@ -263,23 +263,32 @@ class Bank:
 
         return False
 
-    def remove_customer(self, pnr=None, row=None):
+    def remove_customer(self, pnr: str) -> str:
         """
         Removes a specific customer from the text file.
-        :param row: <int> Removes customer by row
         :param pnr: <string> Removes customer by pnr.
 
         :return: list<string> all accounts removed and total funds that will be paid out.
         """
-        if pnr:
-            print("Delete by pnr")  # DEBUG
 
-        elif row:
-            print("Delete by row", row)  # DEBUG
+        # Update the file
+        with open('bank.txt', 'r') as r_file:
+            lines = r_file.readlines()
 
+            for line in lines:
+                list_line = line.strip().split(':')  # Get lists
+                str_line = line.strip()  # Gets string versions for compare
 
-        else:
-            print("Nothing to delete")  # DEBUG
+                tmp_pnr = list_line[1]  # get pnr
+                ret_name = list_line[0]
+
+                if int(tmp_pnr) == int(pnr):
+                    with open("bank.txt", 'w') as w_file:
+                        for lin in lines:
+                            if lin.strip() != str_line:
+                                w_file.write(lin)
+
+                    return ret_name
 
     def manage_customer(self, pos):
         """
@@ -384,7 +393,9 @@ class Bank:
         if menu_val == 1:
             self.manage_customer(int(input("Enter row number: ")) - 1)
         elif menu_val == 2:
-            self.remove_customer(row=int(input("Enter row number: ")) - 1)
+            name = self.remove_customer(int(input("Enter Security number: ")))
+            print("CUSTOMER DELETED", name)
+
         elif menu_val == 3:
             self.show_main_menu()
         else:
