@@ -6,5 +6,5 @@ import nbi
 
 #print(cust.pnr, cust.name)
 
-bank = nbi.Bank()
+bank = nbi.Bank("SEB")
 
