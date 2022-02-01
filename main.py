@@ -1,10 +1,10 @@
 import nbi
 
-#bank_customers = Bank.get_customers()
+bank = nbi.Bank("SEB")
 
-# cust = nbi.Customer(1, "730921-3515", name="Björn Milebjörk")
 
-#print(cust.pnr, cust.name)
-
+<<<<<<< Updated upstream
 bank = nbi.Bank()
+=======
+>>>>>>> Stashed changes
 
